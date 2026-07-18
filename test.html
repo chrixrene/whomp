@@ -1,0 +1,2281 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GeoAI Coastal Fishery Risk Intelligence Prototype</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700;800;900&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+
+<style>
+:root{
+  --font-body:"Noto Sans Thai","Inter","Segoe UI",Tahoma,Arial,sans-serif;
+  --font-head:"Sora","Inter","Noto Sans Thai","Segoe UI",Arial,sans-serif;
+  --font-num:"JetBrains Mono","Noto Sans Thai",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --navy:#0D1E2A;
+  --green-hd:#183B2A;
+  --green-acc:#2E6B4A;
+  --green-lite:#5DC98A;
+  --teal:#2E7D6E;
+  --teal-pale:#D4EDEA;
+  --coral:#B5614A;
+  --coral-pale:#F5E6E2;
+  --amber:#A07B3A;
+  --amber-pale:#F5EDD8;
+  --sand:#C9B99A;
+  --sand-pale:#F5F1EB;
+  --border:#D8CFC4;
+  --bg:#F0ECE6;
+  --card:#FAFAF8;
+  --white:#fff;
+  --text:#1B2B3A;
+  --muted:#5A6A78;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
+  font-size:15px;
+  line-height:1.65;
+}
+
+h1,h2,h3,h4,
+.hero h1,
+.section-title,
+.card-title,
+.logo-title,
+.nav-tab,
+.home-card h3,
+.method-step h4,
+.status-card h4,
+.policy h4,
+.alert h4,
+.ref-item h4{
+  font-family:var(--font-head);
+}
+
+.stat-val,
+.score-big,
+.driver-value,
+.table td b,
+.risk-badge,
+.status-chip,
+.ref-id,
+.formula code,
+code{
+  font-family:var(--font-num);
+  font-variant-numeric:tabular-nums;
+}
+
+.site-header{
+  background:var(--green-hd);
+  color:white;
+  border-bottom:2px solid var(--green-acc);
+  position:sticky;
+  top:0;
+  z-index:2000;
+}
+.header-inner{
+  max-width:1280px;
+  margin:auto;
+  padding:0 2rem;
+  min-height:60px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+}
+.logo-title{
+  font-size:14px;
+  font-weight:700;
+  color:#D4EDDF;
+}
+.logo-sub{
+  font-size:11px;
+  color:rgba(212,237,223,.68);
+}
+.badge{
+  font-size:11px;
+  background:rgba(93,201,138,.15);
+  border:1px solid rgba(93,201,138,.45);
+  padding:4px 10px;
+  border-radius:4px;
+  color:#BDE7CB;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+
+.nav{
+  background:var(--green-hd);
+  border-bottom:1px solid rgba(255,255,255,.10);
+  position:sticky;
+  top:60px;
+  z-index:1500;
+}
+.nav-inner{
+  max-width:1280px;
+  margin:auto;
+  padding:0 2rem;
+  display:flex;
+  overflow-x:auto;
+}
+.nav-tab{
+  padding:12px 16px;
+  color:rgba(212,237,223,.58);
+  cursor:pointer;
+  border-bottom:2px solid transparent;
+  white-space:nowrap;
+  font-size:13.5px;
+  font-weight:700;
+}
+.nav-tab.active,
+.nav-tab:hover{
+  color:#D4EDDF;
+  border-bottom-color:var(--green-lite);
+}
+
+.page{
+  display:none;
+  max-width:1280px;
+  margin:auto;
+  padding:2rem;
+}
+.page.active{display:block}
+
+.hero{
+  background:var(--green-hd);
+  color:white;
+  margin:-2rem -2rem 1.5rem;
+  padding:3.3rem 2rem;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.hero h1{
+  font-size:29px;
+  line-height:1.35;
+  margin-bottom:.7rem;
+  letter-spacing:-0.015em;
+}
+.hero h1 span{color:#7DC9A0}
+.hero p{
+  max-width:820px;
+  color:rgba(255,255,255,.70);
+}
+.tag{
+  display:inline-block;
+  border:1px solid rgba(168,216,188,.45);
+  color:#A8D8BC;
+  padding:4px 12px;
+  border-radius:4px;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.07em;
+  margin-bottom:1rem;
+  font-weight:800;
+}
+
+.notice{
+  background:#fff9e8;
+  border:1px solid #ead7a6;
+  color:#775a18;
+  border-radius:6px;
+  padding:.85rem 1rem;
+  font-size:13px;
+  margin-bottom:1rem;
+}
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:7px;
+  padding:1.25rem;
+}
+.card-title{
+  font-size:12px;
+  font-weight:900;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  margin-bottom:1rem;
+  padding-bottom:.55rem;
+  border-bottom:1px solid var(--border);
+}
+.section-title{
+  font-size:20px;
+  font-weight:900;
+  margin-bottom:.3rem;
+}
+.section-sub{
+  font-size:13.5px;
+  color:var(--muted);
+  margin-bottom:1rem;
+}
+
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+.two-col{display:grid;grid-template-columns:1fr 380px;gap:1.2rem}
+
+.home-card{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:7px;
+  padding:1.2rem;
+  border-top:3px solid var(--teal);
+}
+.home-card.coral{border-top-color:var(--coral)}
+.home-card.amber{border-top-color:var(--amber)}
+.home-card small{
+  display:block;
+  color:var(--teal);
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.07em;
+  margin-bottom:.45rem;
+}
+.home-card.coral small{color:var(--coral)}
+.home-card.amber small{color:var(--amber)}
+.home-card h3{font-size:15px;margin-bottom:.35rem}
+.home-card p{font-size:13px;color:var(--muted)}
+
+.flow{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:.7rem;
+}
+.flow div{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:.9rem;
+}
+.flow b{
+  display:block;
+  font-size:12px;
+  color:var(--green-acc);
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.flow h4{font-size:13.5px;margin:.2rem 0}
+.flow p{font-size:12px;color:var(--muted)}
+
+.formula{
+  background:var(--teal-pale);
+  border:1px solid rgba(46,125,110,.25);
+  padding:1rem 1.2rem;
+  border-radius:7px;
+  margin-top:1rem;
+}
+.formula code{
+  display:block;
+  background:rgba(255,255,255,.7);
+  padding:.8rem;
+  border-radius:5px;
+  white-space:pre-wrap;
+  line-height:1.7;
+  color:var(--navy);
+  font-size:13px;
+}
+
+.stat-box{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:7px;
+  padding:1rem 1.2rem;
+  border-left:4px solid var(--teal);
+}
+.stat-box.red{border-left-color:var(--coral)}
+.stat-box.amber{border-left-color:var(--amber)}
+.stat-label{
+  font-size:12px;
+  color:var(--muted);
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.stat-val{
+  font-size:25px;
+  font-weight:900;
+  line-height:1.2;
+  letter-spacing:-0.02em;
+}
+.stat-sub{font-size:12px;color:var(--muted)}
+
+.controls{
+  display:flex;
+  gap:.8rem;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-bottom:1rem;
+}
+.controls label{
+  font-size:13px;
+  color:var(--muted);
+  font-weight:800;
+}
+.controls select{
+  border:1px solid var(--border);
+  border-radius:5px;
+  padding:6px 10px;
+  background:white;
+  color:var(--text);
+}
+select,input[type=checkbox]{accent-color:var(--green-acc)}
+.layer-check{
+  display:flex;
+  align-items:center;
+  gap:.35rem;
+  font-size:13px;
+  color:var(--muted);
+}
+
+#riskMap,
+#pipelineDynamicMap{
+  height:535px;
+  width:100%;
+  border-radius:7px;
+  border:1px solid var(--border);
+  overflow:hidden;
+  background:#d8ecf7;
+}
+#pipelineDynamicMap{
+  height:390px;
+  margin:.8rem 0 1rem;
+}
+.leaflet-popup-content{
+  font-family:var(--font-body);
+  font-size:13px;
+  line-height:1.55;
+}
+
+.legend,
+.pipeline-map-legend{
+  display:flex;
+  gap:1rem;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-top:.75rem;
+  font-size:12.5px;
+  color:var(--muted);
+}
+.dot{
+  width:13px;
+  height:13px;
+  border-radius:50%;
+  display:inline-block;
+  margin-right:6px;
+  vertical-align:middle;
+}
+
+.table,
+.pipeline-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+.table th,
+.pipeline-table th{
+  background:var(--green-hd);
+  color:#D4EDDF;
+  text-align:left;
+  padding:9px 10px;
+  font-size:11.5px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.table td,
+.pipeline-table td{
+  background:#fff;
+  padding:9px 10px;
+  border-bottom:1px solid var(--border);
+  vertical-align:top;
+}
+.table tr:hover,
+.pipeline-table tr:hover{background:var(--sand-pale)}
+
+.risk-badge{
+  display:inline-block;
+  padding:3px 9px;
+  border-radius:4px;
+  font-size:12px;
+  font-weight:900;
+}
+.high{background:var(--coral-pale);color:var(--coral)}
+.mid{background:var(--amber-pale);color:var(--amber)}
+.low{background:var(--teal-pale);color:var(--teal)}
+
+.bar{
+  height:8px;
+  background:#ddd;
+  border-radius:4px;
+  overflow:hidden;
+  min-width:105px;
+}
+.bar span{display:block;height:100%}
+
+.chart-wrap{
+  height:240px;
+  position:relative;
+}
+.profile-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1rem;
+  margin-bottom:1rem;
+}
+
+.alert{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:7px;
+  padding:1rem 1.15rem;
+  margin-bottom:.8rem;
+  display:flex;
+  justify-content:space-between;
+  gap:1rem;
+}
+.alert.h{border-left:4px solid var(--coral)}
+.alert.m{border-left:4px solid var(--amber)}
+.alert.l{border-left:4px solid var(--teal)}
+.alert h4{font-size:15px}
+.alert p{font-size:13px;color:var(--muted)}
+.action{
+  display:inline-block;
+  margin-top:.45rem;
+  background:var(--teal-pale);
+  color:var(--teal);
+  padding:5px 9px;
+  border-radius:4px;
+  font-size:12.5px;
+  font-weight:800;
+}
+.score-big{
+  font-size:30px;
+  font-weight:900;
+  min-width:60px;
+  text-align:right;
+}
+
+.policy,
+.ref-item{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:7px;
+  padding:1rem;
+  margin-bottom:.8rem;
+}
+.policy h4,
+.ref-item h4{
+  font-size:14.5px;
+  margin-bottom:.25rem;
+}
+.policy p,
+.ref-item p{
+  font-size:13.2px;
+  color:var(--muted);
+}
+.ref-id{
+  display:inline-block;
+  background:var(--teal-pale);
+  color:var(--teal);
+  font-size:11px;
+  font-weight:900;
+  padding:2px 8px;
+  border-radius:4px;
+  margin-bottom:.4rem;
+}
+.ref-url{
+  font-size:12px;
+  color:var(--teal);
+  word-break:break-all;
+}
+
+.method-depth,
+.pipeline-steps{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:.65rem;
+  margin-top:.8rem;
+}
+.method-step,
+.pipeline-step{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:7px;
+  padding:.85rem .8rem;
+  min-height:105px;
+}
+.method-step b,
+.pipeline-step b{
+  display:block;
+  font-family:var(--font-num);
+  color:var(--green-acc);
+  font-size:11px;
+  margin-bottom:.25rem;
+}
+.method-step h4,
+.pipeline-step h4{
+  font-size:13px;
+  margin-bottom:.25rem;
+}
+.method-step p,
+.pipeline-step p{
+  font-size:11.8px;
+  color:var(--muted);
+  line-height:1.45;
+}
+.status-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:.8rem;
+}
+.status-card{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:7px;
+  padding:.9rem 1rem;
+}
+.status-chip{
+  display:inline-block;
+  font-size:10.5px;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  border-radius:999px;
+  padding:2px 8px;
+  margin-bottom:.35rem;
+}
+.status-chip.ready{background:var(--teal-pale);color:var(--teal)}
+.status-chip.planned{background:var(--amber-pale);color:var(--amber)}
+
+.output-grid{
+  display:grid;
+  grid-template-columns:1.05fr .95fr;
+  gap:1rem;
+}
+.file-pill{
+  display:inline-block;
+  border:1px solid var(--border);
+  background:white;
+  border-radius:999px;
+  padding:5px 10px;
+  font-family:var(--font-num);
+  font-size:11.5px;
+  margin:3px 4px 3px 0;
+}
+.codebox{
+  background:#11251B;
+  color:#D4EDDF;
+  border-radius:7px;
+  padding:1rem;
+  overflow:auto;
+  font-family:var(--font-num);
+  font-size:12px;
+  line-height:1.65;
+}
+.grid-note{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:.55rem;
+}
+
+.csv-only-upload{
+  border:1px dashed var(--border);
+  border-radius:7px;
+  background:var(--sand-pale);
+  padding:1rem;
+  margin-bottom:1rem;
+}
+.csv-only-upload label{
+  display:block;
+  font-weight:900;
+  color:var(--green-acc);
+  margin-bottom:.45rem;
+  font-size:13px;
+}
+.csv-only-upload input[type=file]{
+  width:100%;
+  font-size:12.5px;
+}
+.csv-format-note{
+  font-size:12.5px;
+  color:var(--muted);
+  margin-top:.5rem;
+}
+.btn-row{
+  display:flex;
+  gap:.6rem;
+  flex-wrap:wrap;
+  margin-top:.8rem;
+}
+.pipeline-btn{
+  border:1px solid var(--green-acc);
+  background:var(--green-acc);
+  color:white;
+  border-radius:5px;
+  padding:7px 11px;
+  font-family:var(--font-body);
+  font-weight:900;
+  cursor:pointer;
+  font-size:12.5px;
+}
+.pipeline-btn.secondary{
+  background:white;
+  color:var(--green-acc);
+}
+.pipeline-summary{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:.8rem;
+  margin:1rem 0;
+}
+.map-mode-chip{
+  display:inline-block;
+  font-size:10.8px;
+  font-family:var(--font-num);
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  background:var(--teal-pale);
+  color:var(--teal);
+  padding:2px 8px;
+  border-radius:999px;
+  margin-left:.35rem;
+}
+
+.driver-wrap{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1rem;
+  margin-top:1rem;
+}
+.driver-list{display:grid;gap:.75rem}
+.driver-row{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:7px;
+  padding:.85rem .95rem;
+}
+.driver-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:1rem;
+  margin-bottom:.4rem;
+}
+.driver-name{font-size:13px;font-weight:900}
+.driver-value{font-size:13px;font-weight:900;color:var(--navy)}
+.driver-bar{
+  height:9px;
+  background:#e2ded8;
+  border-radius:999px;
+  overflow:hidden;
+}
+.driver-fill{
+  height:100%;
+  border-radius:999px;
+}
+
+@media(max-width:1100px){
+  .method-depth,.pipeline-steps{grid-template-columns:repeat(2,1fr)}
+  .status-grid{grid-template-columns:repeat(2,1fr)}
+  .output-grid,.driver-wrap{grid-template-columns:1fr}
+}
+@media(max-width:960px){
+  .grid-3,.grid-4,.profile-grid,.flow,.pipeline-summary{grid-template-columns:1fr 1fr}
+  .two-col{grid-template-columns:1fr}
+  .page{padding:1.2rem}
+  .hero{margin:-1.2rem -1.2rem 1rem;padding:2.2rem 1.2rem}
+  #riskMap{height:430px}
+}
+@media(max-width:640px){
+  .grid-3,.grid-4,.profile-grid,.flow,.pipeline-summary,.method-depth,.pipeline-steps,.status-grid{grid-template-columns:1fr}
+  .header-inner{padding:0 1rem}
+  .badge{display:none}
+}
+</style>
+</head>
+
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <div>
+      <div class="logo-title">Marine Heat Stress & Coastal Fishery Risk Intelligence</div>
+      <div class="logo-sub">ระบบ GeoAI ประเมินความเสี่ยงประมงชายฝั่ง · ภาคใต้ฝั่งอ่าวไทย</div>
+    </div>
+    <div class="badge">GeoAI Prototype Demo</div>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-tab active" onclick="showPage('home',this)">ภาพรวม</div>
+    <div class="nav-tab" onclick="showPage('map',this)">แผนที่ GeoAI</div>
+    <div class="nav-tab" onclick="showPage('pipeline',this)">Real Data Pipeline</div>
+    <div class="nav-tab" onclick="showPage('profile',this)">ข้อมูลรายจังหวัด</div>
+    <div class="nav-tab" onclick="showPage('alert',this)">จัดอันดับความเสี่ยง</div>
+    <div class="nav-tab" onclick="showPage('policy',this)">ข้อเสนอเชิงนโยบาย</div>
+    <div class="nav-tab" onclick="showPage('refs',this)">แหล่งข้อมูล</div>
+  </div>
+</nav>
+
+<section id="page-home" class="page active">
+  <div class="hero">
+    <div class="tag">GeoAI · Earth Observation · Climate · Fishery</div>
+    <h1>ระบบประเมินความเสี่ยงประมงชายฝั่ง<br><span>จากสภาวะทะเลร้อนและข้อมูลดาวเทียม</span></h1>
+    <p>ต้นแบบนี้วิเคราะห์พื้นที่และช่วงเวลาที่ประมงชายฝั่งเสี่ยงในภาคใต้ฝั่งอ่าวไทย โดยผสานข้อมูล SST, CHL-a, ERA5, สถิติประมง, ขอบเขตจังหวัด และ OpenStreetMap เพื่อสร้างแผนที่ความเสี่ยงและข้อเสนอเชิงนโยบายที่นำไปใช้ประกอบการตัดสินใจได้</p>
+  </div>
+
+  <div class="notice">
+    หมายเหตุ: หน้าแผนที่หลักใช้ mock data เพื่อสาธิตหน้าตาระบบ ส่วนหน้า Real Data Pipeline รองรับการอัปโหลด CSV จริงจาก notebook/script แล้วให้เว็บ generate map และตารางเองโดยไม่ต้องอัปโหลด PNG
+  </div>
+
+  <div class="grid-3" style="margin-bottom:1rem">
+    <div class="home-card"><small>พื้นที่ศึกษา</small><h3>5 จังหวัดอ่าวไทยตอนใต้</h3><p>ชุมพร สุราษฎร์ธานี นครศรีธรรมราช สงขลา และปัตตานี วิเคราะห์รายเดือน</p></div>
+    <div class="home-card coral"><small>ข้อมูลหลัก</small><h3>SST · CHL-a · ERA5 · DOF</h3><p>อุณหภูมิผิวน้ำทะเล, Chlorophyll-a, ภูมิอากาศรายเดือน และปริมาณ/มูลค่าประมงรายจังหวัด</p></div>
+    <div class="home-card amber"><small>ผลลัพธ์</small><h3>Risk Map · Ranking · Policy</h3><p>แผนที่ความเสี่ยง, ranking จังหวัด, dashboard เฝ้าระวัง และข้อเสนอเชิงพื้นที่</p></div>
+  </div>
+
+  <div class="grid-3" style="margin-bottom:1rem">
+    <div class="home-card">
+      <small>ผู้ใช้ประโยชน์หลัก</small>
+      <h3>หน่วยงานรัฐด้านประมง</h3>
+      <p>ใช้แผนที่ความเสี่ยงเพื่อจัดลำดับพื้นที่เฝ้าระวังและวางแผนสำรวจภาคสนาม</p>
+    </div>
+    <div class="home-card coral">
+      <small>ผู้ได้รับผลกระทบ</small>
+      <h3>ชุมชนประมงชายฝั่ง</h3>
+      <p>ใช้ข้อมูลแนวโน้มความเสี่ยงเพื่อเตรียมตัวรับมือช่วงทะเลร้อนหรือ productivity ผิดปกติ</p>
+    </div>
+    <div class="home-card amber">
+      <small>การใช้เชิงนโยบาย</small>
+      <h3>จังหวัดและองค์กรท้องถิ่น</h3>
+      <p>ใช้ Risk Score ประกอบการจัดสรรทรัพยากรและการสื่อสารความเสี่ยงกับพื้นที่เป้าหมาย</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">GeoAI Workflow</div>
+    <div class="flow">
+      <div><b>Step 1</b><h4>Study Area</h4><p>กำหนด 5 จังหวัด + วิเคราะห์รายเดือน</p></div>
+      <div><b>Step 2</b><h4>Data Ingestion</h4><p>SST, CHL-a, ERA5, ประมง, OSM, boundary</p></div>
+      <div><b>Step 3</b><h4>Index</h4><p>Heat Stress, Productivity, Climate Exposure</p></div>
+      <div><b>Step 4</b><h4>AI/ML</h4><p>Anomaly detection, clustering, sensitivity analysis</p></div>
+      <div><b>Step 5</b><h4>Action</h4><p>Map, ranking, alert, policy recommendation</p></div>
+    </div>
+
+    <div class="formula">
+      <b>Fishery Risk Score</b>
+      <code>FRS = 0.4 × Marine Heat Stress Index
+    + 0.3 × Low Productivity Signal
+    + 0.2 × Climate Exposure Index
+    + 0.1 × Fishery Dependency Index
+
+หมายเหตุ: น้ำหนักนี้เป็น initial expert-weighted score สำหรับ MVP และจะทดสอบ sensitivity ภายหลัง</code>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:1rem">
+    <div class="card-title">GeoAI Method Depth · Raster-to-Policy Pipeline</div>
+    <div class="method-depth">
+      <div class="method-step"><b>01</b><h4>Raster</h4><p>นำเข้าข้อมูลดาวเทียมรายวัน/รายเดือนในรูป raster หรือ tiles</p></div>
+      <div class="method-step"><b>02</b><h4>Coastal Buffer</h4><p>ตัดพื้นที่วิเคราะห์เฉพาะเขตประมงชายฝั่ง</p></div>
+      <div class="method-step"><b>03</b><h4>Zonal Stats</h4><p>คำนวณค่ารายจังหวัด/เดือน</p></div>
+      <div class="method-step"><b>04</b><h4>Baseline</h4><p>เทียบค่ากับ baseline เดือนเดียวกัน</p></div>
+      <div class="method-step"><b>05</b><h4>Risk Index</h4><p>รวม Heat Stress, Productivity, Climate และ Dependency</p></div>
+      <div class="method-step"><b>06</b><h4>Action</h4><p>แปลงเป็นแผนที่ ranking และ insight</p></div>
+    </div>
+    <div class="grid-note">ระบบเชื่อม raster → spatial statistics → validation → decision support</div>
+  </div>
+
+  <div class="card" style="margin-top:1rem">
+    <div class="card-title">Model / Validation Status</div>
+    <div class="status-grid">
+      <div class="status-card"><span class="status-chip ready">Ready</span><h4>Baseline Risk Index</h4><p>คำนวณ FRS รายจังหวัด/รายเดือนจากดัชนีย่อย</p></div>
+      <div class="status-card"><span class="status-chip ready">Ready</span><h4>Real Data Pipeline</h4><p>รองรับ CSV จาก SST-only pipeline และวาดแผนที่อัตโนมัติ</p></div>
+      <div class="status-card"><span class="status-chip planned">Next</span><h4>CHL-a / ERA5 / DOF</h4><p>ต่อยอดเป็น FRS เต็มระบบหลังรวมข้อมูลเพิ่มเติม</p></div>
+      <div class="status-card"><span class="status-chip planned">Next</span><h4>Explainability</h4><p>เพิ่ม driver contribution / SHAP เมื่อมี target data เพียงพอ</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="page-map" class="page">
+  <div class="section-title">แผนที่ GeoAI ความเสี่ยงประมงชายฝั่ง</div>
+  <div class="section-sub">แผนที่ต้นแบบแสดงการผสานข้อมูลความเสี่ยงรายจังหวัดร่วมกับชั้นข้อมูลทะเล ภูมิอากาศ และโครงสร้างพื้นฐานชายฝั่ง</div>
+
+  <div class="notice">หน้านี้ใช้ mock data เพื่อสาธิต dashboard ส่วนหน้า Real Data Pipeline รองรับ CSV จริงและ generate map จากข้อมูลที่อัปโหลด</div>
+
+  <div class="grid-4" style="margin-bottom:1rem">
+    <div class="stat-box red"><div class="stat-label">จังหวัดเสี่ยงสูงสุด</div><div class="stat-val" id="topProv">—</div><div class="stat-sub" id="topProvSub">เลือกเดือนเพื่อคำนวณ Risk Score</div></div>
+    <div class="stat-box amber"><div class="stat-label">SST Anomaly สูงสุด</div><div class="stat-val" id="maxSST">—</div><div class="stat-sub">เหนือค่าเฉลี่ยปกติ</div></div>
+    <div class="stat-box"><div class="stat-label">CHL-a ต่ำสุด</div><div class="stat-val" id="minCHLA">—</div><div class="stat-sub">สัญญาณ productivity ต่ำ</div></div>
+    <div class="stat-box"><div class="stat-label">ช่วงเฝ้าระวัง</div><div class="stat-val">มี.ค.–พ.ค.</div><div class="stat-sub">Peak marine heat stress / monitoring</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Interactive GeoAI Map</div>
+    <div class="controls">
+      <label>เดือน:</label>
+      <select id="monthSelect" onchange="updateAll()"></select>
+
+      <label>ชั้นสีหลัก:</label>
+      <select id="mainLayerSelect" onchange="updateAll()">
+        <option value="risk">Fishery Risk Score</option>
+        <option value="heat">Marine Heat Stress Index</option>
+        <option value="prod">Low Productivity Signal</option>
+      </select>
+
+      <label class="layer-check"><input type="checkbox" id="showSST" checked onchange="toggleOverlays()"> SST anomaly</label>
+      <label class="layer-check"><input type="checkbox" id="showCHLA" checked onchange="toggleOverlays()"> CHL-a anomaly</label>
+      <label class="layer-check"><input type="checkbox" id="showPorts" checked onchange="toggleOverlays()"> ท่าเรือ/จุดขึ้นปลา</label>
+      <label class="layer-check"><input type="checkbox" id="showBuffer" checked onchange="toggleOverlays()"> Coastal buffer</label>
+    </div>
+
+    <div id="riskMap"></div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:#B5614A"></span>สูง ≥70</span>
+      <span><span class="dot" style="background:#A07B3A"></span>กลาง 40–69</span>
+      <span><span class="dot" style="background:#2E7D6E"></span>ต่ำ &lt;40</span>
+      <span><span class="dot" style="background:rgba(255,80,40,.45)"></span>SST anomaly</span>
+      <span><span class="dot" style="background:rgba(40,90,220,.45)"></span>CHL-a anomaly</span>
+      <span><span class="dot" style="background:#1A3A2A"></span>ท่าเรือ/จุดขึ้นปลา</span>
+    </div>
+  </div>
+
+  <div class="two-col" style="margin-top:1rem">
+    <div class="card">
+      <div class="card-title">Risk Ranking รายจังหวัด</div>
+      <table class="table" id="rankingTable"></table>
+    </div>
+    <div class="card">
+      <div class="card-title">แนวโน้ม Risk Score เฉลี่ย</div>
+      <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<section id="page-pipeline" class="page">
+  <div class="section-title">Real Data Pipeline · CSV Upload → Auto-Generated Map</div>
+  <div class="section-sub">อัปโหลด CSV จาก notebook/script แล้วเว็บจะสร้าง summary cards, ตาราง และแผนที่ choropleth ให้อัตโนมัติ โดยไม่ต้องอัปโหลด PNG</div>
+
+  <div class="notice">
+    ส่วนนี้คือ <b>Preliminary SST-only Real-Data Pipeline Test</b> สำหรับพิสูจน์ workflow: CSV output → province-month table → SST anomaly / MHSI → web map
+  </div>
+
+  <div class="grid-4" style="margin-bottom:1rem">
+    <div class="stat-box"><div class="stat-label">Boundary</div><div class="stat-val">ADM1</div><div class="stat-sub">ขอบเขตจังหวัดนำร่องฝังในเว็บ</div></div>
+    <div class="stat-box"><div class="stat-label">Coastal Buffer</div><div class="stat-val">50 km</div><div class="stat-sub">พื้นที่วิเคราะห์ชายฝั่ง</div></div>
+    <div class="stat-box red"><div class="stat-label">Real SST</div><div class="stat-val">CSV</div><div class="stat-sub">ข้อมูลจาก notebook/script</div></div>
+    <div class="stat-box amber"><div class="stat-label">Output Unit</div><div class="stat-val">P × M</div><div class="stat-sub">province × month table</div></div>
+  </div>
+
+  <div class="output-grid" style="margin-bottom:1rem">
+    <div class="card">
+      <div class="card-title">Expected Real Pipeline Outputs</div>
+      <p style="font-size:13.5px;color:var(--muted);margin-bottom:.8rem">
+        หลังรัน notebook/script จะได้ไฟล์ CSV เช่น <code>sst_province_month.csv</code> แล้วเอาไฟล์นั้นมาอัปโหลดในเว็บนี้ได้ทันที
+      </p>
+      <div>
+        <span class="file-pill">sst_province_month.csv</span>
+        <span class="file-pill">preliminary_heat_risk.csv</span>
+        <span class="file-pill">province</span>
+        <span class="file-pill">month</span>
+        <span class="file-pill">sst_mean_C</span>
+        <span class="file-pill">sst_anomaly_C</span>
+        <span class="file-pill">MHSI</span>
+        <span class="file-pill">risk_level</span>
+      </div>
+
+      <table class="pipeline-table" style="margin-top:1rem">
+        <thead><tr><th>Field</th><th>Meaning</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>province</td><td>จังหวัดนำร่อง เช่น Songkhla Province หรือ สงขลา</td><td><span class="status-chip ready">Required</span></td></tr>
+          <tr><td>month</td><td>เดือนของข้อมูล เช่น 2024-06</td><td><span class="status-chip ready">Required</span></td></tr>
+          <tr><td>sst_mean_C</td><td>ค่าเฉลี่ย SST รายจังหวัด/เดือน</td><td><span class="status-chip ready">Optional</span></td></tr>
+          <tr><td>sst_anomaly_C</td><td>SST anomaly เทียบ baseline เดือนเดียวกัน</td><td><span class="status-chip ready">Required for anomaly map</span></td></tr>
+          <tr><td>MHSI</td><td>Marine Heat Stress Index จาก SST anomaly</td><td><span class="status-chip ready">Required for risk map</span></td></tr>
+          <tr><td>risk_level</td><td>High / Medium / Low หากไม่มี เว็บจะคำนวณจาก MHSI</td><td><span class="status-chip ready">Optional</span></td></tr>
+        </tbody>
+      </table>
+
+      
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">CSV Upload → Auto-Generated Map</div>
+
+      <div class="notice" style="margin-bottom:.8rem">
+        อัปโหลดไฟล์ CSV จาก pipeline แล้วเว็บจะสร้าง <b>summary cards, ตาราง และแผนที่ choropleth</b> ให้อัตโนมัติจากข้อมูลในไฟล์ โดยไม่ต้องอัปโหลดรูปแผนที่ PNG แยก
+      </div>
+
+      <div class="csv-only-upload">
+        <label>Upload pipeline CSV</label>
+        <input type="file" id="pipelineCsvInput" accept=".csv" onchange="handlePipelineCsv(event)">
+        <div class="csv-format-note">
+          รองรับไฟล์เช่น <code>sst_province_month.csv</code> หรือ <code>preliminary_heat_risk.csv</code><br>
+          columns ที่แนะนำ: <code>province, month, sst_mean_C, sst_anomaly_C, MHSI, risk_level</code>
+        </div>
+      </div>
+
+      <div class="btn-row" style="margin-top:0">
+        <button class="pipeline-btn" onclick="loadSamplePipelineData()">Load embedded demo CSV</button>
+        <button class="pipeline-btn secondary" onclick="clearPipelineUploads()">Clear CSV preview</button>
+      </div>
+
+      <div class="pipeline-summary" id="pipelineSummaryCards"></div>
+
+      <div class="controls" style="margin-top:.6rem">
+        <label>เลือกเดือนจาก CSV:</label>
+        <select id="pipelineMonthSelect" onchange="renderPipelineTable()"></select>
+
+        <label>แสดงแผนที่:</label>
+        <select id="pipelineMapMetric" onchange="renderPipelineMap()">
+          <option value="MHSI">Preliminary heat-risk / MHSI</option>
+          <option value="sst_anomaly_C">SST anomaly</option>
+        </select>
+
+        <span id="pipelineDataMode" class="map-mode-chip">waiting for csv</span>
+      </div>
+
+      <div id="pipelineDynamicMap"></div>
+
+      <div class="pipeline-map-legend">
+        <span><span class="dot" style="background:#B5614A"></span>สูง</span>
+        <span><span class="dot" style="background:#A07B3A"></span>ปานกลาง</span>
+        <span><span class="dot" style="background:#2E7D6E"></span>ต่ำ</span>
+        <span>แผนที่นี้สร้างจาก CSV โดยตรง ไม่ต้องอัปโหลด PNG</span>
+      </div>
+
+      <table class="pipeline-table" id="pipelineResultTable">
+        <thead>
+          <tr>
+            <th>Province</th>
+            <th>Month</th>
+            <th>SST mean</th>
+            <th>SST anomaly</th>
+            <th>MHSI</th>
+            <th>Risk level</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="grid-note">
+        Fixed: Preliminary SST-only pipeline output generated from real NOAA OISST data and administrative boundary.
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Interpretation Note · ข้อจำกัดของผลลัพธ์หน้านี้</div>
+    <p style="font-size:13.5px;color:var(--muted);margin-bottom:.75rem">
+      ผลลัพธ์ในแท็บนี้เป็น <b>SST-only preliminary real-data pipeline test</b> ยังไม่ใช่ Fishery Risk Score ฉบับสมบูรณ์ เพราะ FRS เต็มระบบจะต้องรวม LPS จาก CHL-a, CEI จาก ERA5, FDI จากข้อมูลประมง และข้อมูลบริบทชายฝั่งเพิ่มเติม
+    </p>
+    <div class="formula">
+      <b>Current preliminary test</b>
+      <code>Boundary + Coastal Buffer + NOAA OISST SST
+→ Monthly SST Mean
+→ SST Anomaly
+→ Zonal Statistics by Province
+→ Preliminary MHSI / Heat-Risk Map
+
+Final FRS = 0.4 × MHSI + 0.3 × LPS + 0.2 × CEI + 0.1 × FDI</code>
+    </div>
+  </div>
+</section>
+
+<section id="page-profile" class="page">
+  <div class="section-title">ข้อมูลรายจังหวัด</div>
+  <div class="section-sub">ใช้สำหรับอธิบายว่า “จังหวัดนี้เสี่ยงเพราะอะไร” ไม่ใช่แค่บอกคะแนน</div>
+  <div class="notice">ค่าที่แสดงเป็น mock data สำหรับ demo และจะเปลี่ยนตามเดือนที่เลือกในหน้าแผนที่</div>
+
+  <div class="controls">
+    <label>เลือกจังหวัด:</label>
+    <select id="provinceSelect" onchange="updateProfile()"></select>
+  </div>
+
+  <div class="profile-grid" id="profileCards"></div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Risk Score รายเดือน</div>
+      <div class="chart-wrap"><canvas id="provinceChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">ปัจจัยที่ขับเคลื่อนความเสี่ยง</div>
+      <div id="factorText" style="font-size:13.5px;color:var(--muted)"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:1rem">
+    <div class="card-title">Risk Driver Contribution · เสี่ยงเพราะอะไร</div>
+    <div class="driver-wrap">
+      <div class="driver-list" id="driverBars"></div>
+      <div>
+        <div class="notice" style="margin-bottom:.8rem">
+          Driver contribution ใน prototype คำนวณจากสัดส่วนของ 4 องค์ประกอบหลักตามสูตร FRS เพื่อช่วยอธิบายคะแนน ไม่ใช่ causal attribution ขั้นสุดท้าย
+        </div>
+        <div class="chart-wrap" style="height:210px"><canvas id="driverChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="page-alert" class="page">
+  <div class="section-title">การจัดอันดับความเสี่ยงและการเฝ้าระวัง</div>
+  <div class="section-sub">จัดลำดับพื้นที่ที่ควรเฝ้าระวัง/สำรวจภาคสนาม/ประสานงานหน่วยงานก่อน</div>
+  <div id="alertList"></div>
+</section>
+
+<section id="page-policy" class="page">
+  <div class="section-title">ข้อเสนอเชิงนโยบาย</div>
+  <div class="section-sub">ใช้เป็นข้อมูลประกอบการตัดสินใจ ไม่ใช่ผลตัดสินเชิงนโยบายอัตโนมัติ</div>
+
+  <div class="grid-3" style="margin-bottom:1rem">
+    <div class="stat-box red"><div class="stat-label">เร่งเฝ้าระวัง</div><div class="stat-val">นครศรีฯ</div><div class="stat-sub">Risk สูงและมีหลายปัจจัยร่วม</div></div>
+    <div class="stat-box amber"><div class="stat-label">ติดตามต่อเนื่อง</div><div class="stat-val">สงขลา</div><div class="stat-sub">SST anomaly สูงช่วง มี.ค.–พ.ค.</div></div>
+    <div class="stat-box"><div class="stat-label">สำรวจเพิ่มเติม</div><div class="stat-val">ปัตตานี</div><div class="stat-sub">CHL-a anomaly ต่ำเด่น</div></div>
+  </div>
+
+  <div class="policy"><h4>1. ใช้ Risk Map เป็นเครื่องมือจัดลำดับพื้นที่เฝ้าระวัง</h4><p>หน่วยงานประมงจังหวัดสามารถใช้แผนที่เพื่อดูว่าจังหวัดใดมี SST anomaly สูงร่วมกับ CHL-a anomaly ต่ำ และจัดลำดับพื้นที่สำหรับการติดตามภาคสนามก่อนตัดสินใจออกมาตรการ</p></div>
+  <div class="policy"><h4>2. เพิ่มการสื่อสารความเสี่ยงช่วงมีนาคม–พฤษภาคม</h4><p>ช่วงที่ระบบประเมินว่า marine heat stress สูง ควรเพิ่มการแจ้งเตือนเชิงข้อมูลแก่กลุ่มประมงชายฝั่ง เช่น รายงานรายสัปดาห์จาก SST/CHL-a และแนวโน้มสภาพอากาศทะเล</p></div>
+  <div class="policy"><h4>3. เชื่อมข้อมูลกับการวางแผนงบประมาณเชิงพื้นที่</h4><p>Risk Score และ Fishery Dependency Index สามารถใช้ประกอบการพิจารณาพื้นที่เป้าหมายสำหรับการสนับสนุนชุมชนประมง โดยไม่ใช้แทนการสำรวจภาคสนามหรือการตัดสินใจของผู้เชี่ยวชาญ</p></div>
+  <div class="policy"><h4>4. พัฒนาการเก็บข้อมูลประมงให้ละเอียดขึ้น</h4><p>เพื่อเพิ่มความแม่นยำในอนาคต ควรเก็บข้อมูลปริมาณ/มูลค่าการจับสัตว์น้ำในระดับอำเภอหรือรายเดือน เพื่อเชื่อมกับข้อมูลดาวเทียมและ climate anomaly ได้ตรงขึ้น</p></div>
+</section>
+
+<section id="page-refs" class="page">
+  <div class="section-title">แหล่งข้อมูลและชั้นข้อมูล</div>
+  <div class="section-sub">ระบุแหล่งข้อมูลให้ชัดตามเงื่อนไขการประกวด</div>
+
+  <div class="ref-item"><span class="ref-id">SST</span><h4>GISTDA Open Data — SST เฉลี่ยรายวัน / NOAA OISST v2.1</h4><p>ใช้คำนวณ SST anomaly และ Marine Heat Stress Index</p><div class="ref-url">https://opendata.gistda.or.th · https://www.ncei.noaa.gov/products/optimum-interpolation-sst</div></div>
+  <div class="ref-item"><span class="ref-id">CHL-a</span><h4>GISTDA Open Data — CHL-a เฉลี่ยรายวัน / NASA OceanColor</h4><p>ใช้เป็น proxy ของความอุดมสมบูรณ์ทางทะเลและสร้าง Low Productivity Signal</p><div class="ref-url">https://opendata.gistda.or.th · https://oceancolor.gsfc.nasa.gov</div></div>
+  <div class="ref-item"><span class="ref-id">ERA5</span><h4>Copernicus Climate Data Store — ERA5</h4><p>ใช้ตัวแปรลม ฝน อุณหภูมิ และ climate anomaly เพื่อสร้าง Climate Exposure Index</p><div class="ref-url">https://cds.climate.copernicus.eu</div></div>
+  <div class="ref-item"><span class="ref-id">DOF</span><h4>กรมประมง / Government Data Catalog</h4><p>ใช้ปริมาณและมูลค่าการจับสัตว์น้ำรายจังหวัดเพื่อสร้าง Fishery Dependency Index และ validation</p><div class="ref-url">https://catalog.fisheries.go.th · https://gdcatalog.go.th</div></div>
+  <div class="ref-item"><span class="ref-id">OSM</span><h4>OpenStreetMap Thailand Extract / Geofabrik</h4><p>ใช้ตำแหน่งถนน ท่าเรือ จุดขึ้นปลา ชุมชน และโครงสร้างพื้นฐานชายฝั่ง</p><div class="ref-url">https://download.geofabrik.de/asia/thailand.html</div></div>
+  <div class="ref-item"><span class="ref-id">BOUNDARY</span><h4>Thailand Subnational Administrative Boundaries</h4><p>ใช้ GeoJSON/Shapefile ขอบเขตจังหวัดและอำเภอสำหรับ choropleth map และ aggregate raster</p><div class="ref-url">https://www.geoboundaries.org · https://data.humdata.org/dataset/cod-ab-tha</div></div>
+</section>
+
+<script>
+/* ---------- Mock Data ---------- */
+const months = [
+  "ม.ค. 2567","ก.พ. 2567","มี.ค. 2567","เม.ย. 2567","พ.ค. 2567","มิ.ย. 2567",
+  "ก.ค. 2567","ส.ค. 2567","ก.ย. 2567","ต.ค. 2567","พ.ย. 2567","ธ.ค. 2567",
+  "ม.ค. 2568","ก.พ. 2568","มี.ค. 2568","เม.ย. 2568","พ.ค. 2568","มิ.ย. 2568",
+  "ก.ค. 2568","ส.ค. 2568","ก.ย. 2568","ต.ค. 2568","พ.ย. 2568","ธ.ค. 2568",
+  "ม.ค. 2569","ก.พ. 2569","มี.ค. 2569","เม.ย. 2569","พ.ค. 2569","มิ.ย. 2569"
+];
+
+const provinces = {
+  chumphon:{
+    name:"ชุมพร", short:"ชุมพร", center:[10.49,99.18], dep:"ต่ำ",
+    risk:[22,25,30,34,36,31,27,25,23,22,21,22,24,28,35,40,41,34,29,26,24,23,22,24,26,30,38,43,44,36],
+    heat:[20,24,31,35,38,32,27,24,22,20,20,21,23,28,37,42,44,36,30,26,24,22,22,24,25,30,40,45,47,38],
+    prod:[18,22,26,28,30,29,26,24,20,18,19,18,19,24,30,33,35,33,29,26,21,19,20,19,20,25,32,35,36,33],
+    sst:[0.1,0.2,0.4,0.5,0.6,0.3,0.2,0.2,0.1,0.1,0.1,0.1,0.2,0.3,0.6,0.7,0.8,0.4,0.3,0.3,0.1,0.1,0.1,0.2,0.3,0.4,0.7,0.8,0.9,0.5],
+    chla:[4,5,9,12,8,5,2,1,0,-1,0,2,4,4,6,8,5,3,1,0,0,-1,0,2,3,3,5,7,4,2],
+    factor:"ความเสี่ยงต่ำที่สุดในกลุ่ม SST anomaly ยังไม่สูงมากและ CHL-a อยู่ในเกณฑ์ปกติ เหมาะใช้เป็น baseline เปรียบเทียบกับจังหวัดอื่น"
+  },
+  surat:{
+    name:"สุราษฎร์ธานี", short:"สุราษฎร์ฯ", center:[9.14,99.33], dep:"ปานกลาง",
+    risk:[30,35,44,52,55,50,43,38,34,31,29,30,32,38,49,58,60,53,45,39,35,32,30,32,34,40,52,61,63,55],
+    heat:[28,34,48,57,59,52,45,37,33,30,28,29,31,38,54,64,65,56,48,39,35,32,30,32,33,40,57,67,68,58],
+    prod:[25,28,34,38,41,37,32,30,28,25,24,25,26,30,38,43,46,41,35,32,29,26,25,26,27,31,40,45,47,41],
+    sst:[0.2,0.3,0.7,0.9,1.0,0.7,0.4,0.3,0.2,0.1,0.1,0.1,0.3,0.4,0.9,1.1,1.2,0.8,0.5,0.4,0.2,0.1,0.1,0.2,0.4,0.5,1.0,1.2,1.3,0.9],
+    chla:[1,2,4,5,3,1,0,-1,-1,-2,0,1,1,1,1,1,0,-1,-1,-2,-1,-2,0,1,0,0,0,0,-1,-2],
+    factor:"SST anomaly ปานกลางและมี fishery dependency ระดับปานกลาง จึงควรเฝ้าระวังเป็นระยะ โดยเฉพาะช่วง มี.ค.–พ.ค."
+  },
+  nakhon:{
+    name:"นครศรีธรรมราช", short:"นครศรีฯ", center:[8.43,99.97], dep:"สูง",
+    risk:[46,55,70,82,80,72,63,55,49,45,42,44,48,58,75,88,85,75,65,56,50,46,43,46,50,60,78,91,88,77],
+    heat:[42,53,76,88,85,76,64,54,48,44,40,42,45,57,82,95,91,80,67,56,50,46,42,45,47,59,85,98,94,82],
+    prod:[38,48,68,80,82,74,60,52,46,42,40,41,39,50,72,85,87,78,63,54,47,43,41,42,40,51,74,87,88,78],
+    sst:[0.4,0.7,1.2,1.6,1.5,1.1,0.8,0.6,0.4,0.3,0.2,0.3,0.5,0.8,1.4,1.8,1.7,1.2,0.9,0.7,0.4,0.3,0.2,0.4,0.6,0.9,1.5,1.9,1.8,1.3],
+    chla:[-5,-10,-22,-34,-30,-24,-18,-12,-8,-6,-4,-5,-5,-11,-25,-38,-33,-26,-19,-13,-8,-6,-4,-5,-6,-12,-26,-39,-34,-27],
+    factor:"ความเสี่ยงสูงจากหลายปัจจัยร่วมกัน ได้แก่ SST anomaly สูง CHL-a ต่ำกว่าปกติ และระดับการพึ่งพาประมงสูง เหมาะเป็นพื้นที่เฝ้าระวังลำดับแรก"
+  },
+  songkhla:{
+    name:"สงขลา", short:"สงขลา", center:[7.2,100.59], dep:"สูง",
+    risk:[42,50,66,76,78,70,60,52,46,42,40,41,44,53,71,82,83,73,62,53,47,43,41,43,46,55,74,85,86,75],
+    heat:[48,60,78,92,90,80,66,56,48,44,42,43,51,64,84,99,96,84,69,58,50,46,44,46,53,66,87,100,99,86],
+    prod:[32,40,55,66,70,62,52,46,40,36,35,36,33,42,59,71,75,66,55,48,41,37,36,37,34,43,61,73,76,66],
+    sst:[0.5,0.8,1.4,1.8,1.7,1.2,0.8,0.6,0.4,0.3,0.2,0.3,0.6,0.9,1.6,2.0,1.9,1.3,0.9,0.7,0.4,0.3,0.2,0.4,0.7,1.0,1.7,2.1,2.0,1.4],
+    chla:[-2,-8,-15,-22,-26,-20,-15,-10,-6,-4,-3,-3,-2,-9,-18,-26,-29,-22,-16,-11,-6,-4,-3,-3,-3,-10,-19,-27,-30,-23],
+    factor:"SST anomaly สูงที่สุดในกลุ่ม โดยเฉพาะช่วงเมษายน–พฤษภาคม แม้ CHL-a ต่ำไม่สุดแต่มี heat stress เด่นและมีความสำคัญด้านประมง"
+  },
+  pattani:{
+    name:"ปัตตานี", short:"ปัตตานี", center:[6.86,101.25], dep:"ปานกลาง-สูง",
+    risk:[38,47,70,72,68,62,55,48,43,39,37,38,40,50,75,78,73,65,57,49,44,40,38,40,42,52,78,81,76,67],
+    heat:[34,45,66,73,70,62,54,46,40,36,34,35,37,49,72,80,76,66,57,48,42,38,36,38,39,51,75,83,79,68],
+    prod:[44,55,82,86,78,68,58,50,44,40,38,39,45,57,86,91,83,72,61,52,45,41,39,40,46,58,88,93,84,72],
+    sst:[0.3,0.5,1.2,1.3,1.1,0.9,0.6,0.4,0.3,0.2,0.2,0.2,0.4,0.6,1.4,1.5,1.3,1.0,0.7,0.5,0.3,0.2,0.2,0.3,0.5,0.7,1.5,1.6,1.4,1.1],
+    chla:[-10,-18,-42,-38,-34,-26,-18,-12,-8,-6,-5,-5,-10,-19,-45,-42,-37,-28,-19,-13,-8,-6,-5,-5,-11,-20,-46,-43,-38,-29],
+    factor:"CHL-a anomaly ต่ำเด่นมาก โดยเฉพาะเดือนมีนาคม–เมษายน จึงควรตรวจสอบภาคสนามเพิ่มเติม"
+  }
+};
+
+/* Approximate polygons for prototype only */
+const provinceGeo = {
+  chumphon:[[10.98,98.72],[10.98,99.35],[10.62,99.55],[10.25,99.42],[10.02,99.05],[10.30,98.70]],
+  surat:[[9.85,98.72],[9.78,99.55],[9.40,99.95],[8.95,100.05],[8.60,99.70],[8.78,99.05],[9.15,98.65]],
+  nakhon:[[8.92,99.35],[8.82,100.05],[8.40,100.18],[7.88,100.05],[7.62,99.70],[7.88,99.35],[8.35,99.20]],
+  songkhla:[[7.55,100.05],[7.45,100.78],[7.05,100.92],[6.76,100.68],[6.90,100.18],[7.20,99.92]],
+  pattani:[[6.98,100.82],[6.96,101.55],[6.60,101.75],[6.35,101.45],[6.48,101.05],[6.72,100.78]]
+};
+
+const ports = [
+  {name:"ท่าเรือชุมพร", lat:10.47, lon:99.25, province:"ชุมพร"},
+  {name:"ท่าเรือสุราษฎร์ธานี", lat:9.20, lon:99.38, province:"สุราษฎร์ธานี"},
+  {name:"ท่าเรือปากพนัง", lat:8.35, lon:100.20, province:"นครศรีธรรมราช"},
+  {name:"ท่าเรือสงขลา", lat:7.23, lon:100.58, province:"สงขลา"},
+  {name:"ท่าเรือปัตตานี", lat:6.87, lon:101.25, province:"ปัตตานี"}
+];
+
+const coastalBufferPoly = [
+  [11.10,99.05],[10.70,99.60],[10.10,99.82],[9.40,100.10],[8.60,100.35],
+  [7.80,100.52],[7.10,100.90],[6.45,101.65],[6.20,101.42],[6.80,100.72],
+  [7.45,100.35],[8.25,100.02],[9.15,99.72],[10.05,99.40],[10.70,99.12],[11.10,98.92]
+];
+
+let map, provinceLayer, sstLayer, chlaLayer, portLayer, bufferLayer;
+let pipelineMap, pipelineMapLayer, pipelineBufferLayer;
+let trendChart, provinceChart, driverChart;
+let activePage = "home";
+
+/* ---------- Helpers ---------- */
+function currentMonthIndex(){
+  const el = document.getElementById("monthSelect");
+  if(!el || el.value === "") return months.length - 1;
+  return Number(el.value);
+}
+function level(score){
+  if(score >= 70) return "high";
+  if(score >= 40) return "mid";
+  return "low";
+}
+function levelTh(score){
+  if(score >= 70) return "สูง";
+  if(score >= 40) return "ปานกลาง";
+  return "ต่ำ";
+}
+function colorByScore(score){
+  if(score >= 70) return "#B5614A";
+  if(score >= 40) return "#A07B3A";
+  return "#2E7D6E";
+}
+function colorByLayer(value, layer){
+  if(layer === "prod"){
+    if(value >= 70) return "#5B5DAE";
+    if(value >= 40) return "#4FA396";
+    return "#91C6B6";
+  }
+  return colorByScore(value);
+}
+function getMetric(prov, monthIdx, layer){
+  if(layer === "heat") return prov.heat[monthIdx];
+  if(layer === "prod") return prov.prod[monthIdx];
+  return prov.risk[monthIdx];
+}
+
+/* ---------- Navigation ---------- */
+window.showPage = function(id, tab){
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  const page = document.getElementById("page-" + id);
+  if(page) page.classList.add("active");
+
+  document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+  if(tab) tab.classList.add("active");
+
+  activePage = id;
+
+  if(id === "map"){
+    setTimeout(() => {
+      if(!map) initMap();
+      else map.invalidateSize();
+      updateAll();
+    }, 80);
+  }
+
+  if(id === "profile"){
+    setTimeout(updateProfile, 80);
+  }
+
+  if(id === "alert"){
+    updateAlerts();
+  }
+
+  if(id === "pipeline"){
+    setTimeout(() => {
+      ensurePipelineMap();
+      if(pipelineRows.length === 0){
+        loadSamplePipelineData();
+      } else {
+        renderPipelineTable();
+        renderPipelineMap();
+      }
+    }, 120);
+  }
+};
+
+/* ---------- Initial UI ---------- */
+function initSelectors(){
+  const monthSelect = document.getElementById("monthSelect");
+  if(monthSelect && monthSelect.children.length === 0){
+    months.forEach((m,i)=>{
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = m;
+      if(i === months.length - 1) opt.selected = true;
+      monthSelect.appendChild(opt);
+    });
+  }
+
+  const provinceSelect = document.getElementById("provinceSelect");
+  if(provinceSelect && provinceSelect.children.length === 0){
+    Object.entries(provinces).forEach(([key,p])=>{
+      const opt = document.createElement("option");
+      opt.value = key;
+      opt.textContent = p.name;
+      if(key === "nakhon") opt.selected = true;
+      provinceSelect.appendChild(opt);
+    });
+  }
+}
+
+/* ---------- Main Map ---------- */
+function initMap(){
+  map = L.map("riskMap", { zoomControl:true, attributionControl:true }).setView([8.55,100.10], 7);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom:18,
+    attribution:"&copy; OpenStreetMap contributors"
+  }).addTo(map);
+
+  bufferLayer = L.polygon(coastalBufferPoly, {
+    color:"#2E7D6E",
+    weight:1.8,
+    dashArray:"6,6",
+    fillColor:"#2E7D6E",
+    fillOpacity:0.08
+  }).bindPopup("<b>Coastal analysis buffer</b><br>พื้นที่จำลอง 0–50 km จากชายฝั่ง").addTo(map);
+
+  provinceLayer = L.layerGroup().addTo(map);
+  sstLayer = L.layerGroup().addTo(map);
+  chlaLayer = L.layerGroup().addTo(map);
+  portLayer = L.layerGroup().addTo(map);
+
+  map.fitBounds([[6.15,98.65],[11.15,101.90]], {padding:[20,20]});
+}
+
+function updateAll(){
+  if(!map) return;
+
+  const m = Number(document.getElementById("monthSelect").value);
+  const layer = document.getElementById("mainLayerSelect").value;
+
+  provinceLayer.clearLayers();
+  sstLayer.clearLayers();
+  chlaLayer.clearLayers();
+  portLayer.clearLayers();
+
+  const ranked = Object.entries(provinces)
+    .map(([key,p]) => ({key, ...p, score:p.risk[m]}))
+    .sort((a,b) => b.score - a.score);
+
+  ranked.forEach(r => {
+    const metric = getMetric(r,m,layer);
+    const poly = L.polygon(provinceGeo[r.key], {
+      color:"#ffffff",
+      weight:1.4,
+      fillColor:colorByLayer(metric, layer),
+      fillOpacity:.78
+    });
+
+    poly.bindPopup(`
+      <b>${r.name}</b><br>
+      เดือน: ${months[m]}<br>
+      Risk Score: <b>${r.risk[m]}/100</b> (${levelTh(r.risk[m])})<br>
+      Heat Stress: ${r.heat[m]}/100<br>
+      Low Productivity: ${r.prod[m]}/100<br>
+      SST anomaly: ${r.sst[m] > 0 ? "+" : ""}${r.sst[m].toFixed(1)}°C<br>
+      CHL-a anomaly: ${r.chla[m] > 0 ? "+" : ""}${r.chla[m]}%
+    `);
+
+    poly.addTo(provinceLayer);
+
+    const gridOffsets = [[-0.18,0.32],[-0.18,0.56],[0.02,0.32],[0.02,0.56],[0.22,0.32],[0.22,0.56]];
+    gridOffsets.forEach((off,idx)=>{
+      const lat = r.center[0] + off[0];
+      const lon = r.center[1] + off[1];
+      const cell = [[lat-0.09,lon-0.11],[lat-0.09,lon+0.11],[lat+0.09,lon+0.11],[lat+0.09,lon-0.11]];
+      const heatAlpha = Math.min(0.50, 0.12 + r.heat[m]/220 + idx*0.01);
+
+      L.polygon(cell, {
+        color:"rgba(180,60,40,.55)",
+        weight:.7,
+        fillColor:"rgba(255,80,40,1)",
+        fillOpacity:heatAlpha
+      }).bindPopup(`<b>SST anomaly grid cell</b><br>${r.name}: ${r.sst[m] > 0 ? "+" : ""}${r.sst[m].toFixed(1)}°C`).addTo(sstLayer);
+
+      const cell2 = [[lat-0.09,lon+0.17],[lat-0.09,lon+0.39],[lat+0.09,lon+0.39],[lat+0.09,lon+0.17]];
+      const prodAlpha = Math.min(0.45, 0.10 + r.prod[m]/240 + idx*0.008);
+
+      L.polygon(cell2, {
+        color:"rgba(30,70,180,.55)",
+        weight:.7,
+        fillColor:"rgba(40,90,220,1)",
+        fillOpacity:prodAlpha
+      }).bindPopup(`<b>CHL-a anomaly grid cell</b><br>${r.name}: ${r.chla[m] > 0 ? "+" : ""}${r.chla[m]}%`).addTo(chlaLayer);
+    });
+  });
+
+  ports.forEach(pt=>{
+    L.circleMarker([pt.lat,pt.lon], {
+      radius:6,
+      fillColor:"#1A3A2A",
+      color:"#fff",
+      weight:1.4,
+      fillOpacity:1
+    }).bindPopup(`<b>${pt.name}</b><br>${pt.province}`).addTo(portLayer);
+  });
+
+  toggleOverlays();
+  updateStatCards(ranked,m);
+  updateRankingTable(ranked,m);
+  updateTrendChart();
+
+  if(activePage === "profile") updateProfile();
+  if(activePage === "alert") updateAlerts();
+}
+
+function toggleOverlays(){
+  if(!map) return;
+
+  const showSST = document.getElementById("showSST").checked;
+  const showCHLA = document.getElementById("showCHLA").checked;
+  const showPorts = document.getElementById("showPorts").checked;
+  const showBuffer = document.getElementById("showBuffer").checked;
+
+  if(showSST && !map.hasLayer(sstLayer)) sstLayer.addTo(map);
+  if(!showSST && map.hasLayer(sstLayer)) map.removeLayer(sstLayer);
+
+  if(showCHLA && !map.hasLayer(chlaLayer)) chlaLayer.addTo(map);
+  if(!showCHLA && map.hasLayer(chlaLayer)) map.removeLayer(chlaLayer);
+
+  if(showPorts && !map.hasLayer(portLayer)) portLayer.addTo(map);
+  if(!showPorts && map.hasLayer(portLayer)) map.removeLayer(portLayer);
+
+  if(showBuffer && !map.hasLayer(bufferLayer)) bufferLayer.addTo(map);
+  if(!showBuffer && map.hasLayer(bufferLayer)) map.removeLayer(bufferLayer);
+}
+
+function updateStatCards(ranked,m){
+  const top = ranked[0];
+  const maxSST = ranked.reduce((a,b)=> b.sst[m] > a.sst[m] ? b : a, ranked[0]);
+  const minCHLA = ranked.reduce((a,b)=> b.chla[m] < a.chla[m] ? b : a, ranked[0]);
+
+  document.getElementById("topProv").textContent = top.short;
+  document.getElementById("topProvSub").textContent = `Risk Score ${top.score} · ${months[m]}`;
+  document.getElementById("maxSST").textContent = `+${maxSST.sst[m].toFixed(1)}°C`;
+  document.getElementById("minCHLA").textContent = `${minCHLA.chla[m]}%`;
+}
+
+function updateRankingTable(ranked,m){
+  const rows = ranked.map((r,i)=>{
+    const lv = level(r.score);
+    const fill = colorByScore(r.score);
+    return `<tr>
+      <td><b>${i+1}</b></td>
+      <td><b>${r.name}</b></td>
+      <td style="color:var(--coral)">${r.sst[m] > 0 ? "+" : ""}${r.sst[m].toFixed(1)}°C</td>
+      <td style="color:${r.chla[m] < 0 ? "var(--teal)" : "var(--coral)"}">${r.chla[m] > 0 ? "+" : ""}${r.chla[m]}%</td>
+      <td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><span style="width:${r.score}%;background:${fill}"></span></div><b>${r.score}</b></div></td>
+      <td><span class="risk-badge ${lv}">${levelTh(r.score)}</span></td>
+    </tr>`;
+  }).join("");
+
+  document.getElementById("rankingTable").innerHTML = `
+    <thead><tr><th>อันดับ</th><th>จังหวัด</th><th>SST</th><th>CHL-a</th><th>Risk Score</th><th>ระดับ</th></tr></thead>
+    <tbody>${rows}</tbody>
+  `;
+}
+
+/* ---------- Charts ---------- */
+function updateTrendChart(){
+  const ctx = document.getElementById("trendChart");
+  if(!ctx || typeof Chart === "undefined") return;
+
+  const avg = months.map((_,i)=>{
+    const vals = Object.values(provinces).map(p=>p.risk[i]);
+    return Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+  });
+
+  if(trendChart) trendChart.destroy();
+
+  trendChart = new Chart(ctx, {
+    type:"line",
+    data:{
+      labels:months,
+      datasets:[{label:"Average Risk Score",data:avg,tension:.35,borderWidth:2,pointRadius:3}]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{y:{min:0,max:100}}
+    }
+  });
+}
+
+/* ---------- Profile ---------- */
+function getDriverContributions(p,m){
+  const heatWeighted = 0.4 * p.heat[m];
+  const prodWeighted = 0.3 * p.prod[m];
+
+  const monthInYear = m % 12;
+  const seasonalBoost = (monthInYear >= 2 && monthInYear <= 5) ? 12 : 4;
+  const climate = Math.min(100, Math.round(0.55 * p.heat[m] + seasonalBoost));
+  const climateWeighted = 0.2 * climate;
+
+  let depScore = 35;
+  if(p.dep.includes("สูง")) depScore = 85;
+  else if(p.dep.includes("ปานกลาง-สูง")) depScore = 70;
+  else if(p.dep.includes("ปานกลาง")) depScore = 55;
+
+  const depWeighted = 0.1 * depScore;
+  const total = heatWeighted + prodWeighted + climateWeighted + depWeighted || 1;
+
+  return [
+    {name:"Marine Heat Stress", raw:p.heat[m], weighted:heatWeighted, pct:Math.round(heatWeighted/total*100), color:"#B5614A"},
+    {name:"Low Productivity Signal", raw:p.prod[m], weighted:prodWeighted, pct:Math.round(prodWeighted/total*100), color:"#5B5DAE"},
+    {name:"Climate Exposure", raw:climate, weighted:climateWeighted, pct:Math.round(climateWeighted/total*100), color:"#A07B3A"},
+    {name:"Fishery Dependency", raw:depScore, weighted:depWeighted, pct:Math.round(depWeighted/total*100), color:"#2E7D6E"}
+  ];
+}
+
+function updateDriverPanel(p,m){
+  const drivers = getDriverContributions(p,m);
+  const target = document.getElementById("driverBars");
+  if(!target) return;
+
+  target.innerHTML = drivers.map(d=>`
+    <div class="driver-row">
+      <div class="driver-top">
+        <span class="driver-name">${d.name}</span>
+        <span class="driver-value">${d.pct}%</span>
+      </div>
+      <div class="driver-bar"><div class="driver-fill" style="width:${d.pct}%;background:${d.color}"></div></div>
+      <div class="grid-note">Raw index: ${Math.round(d.raw)}/100 · Weighted contribution: ${d.weighted.toFixed(1)}</div>
+    </div>
+  `).join("");
+
+  const ctx = document.getElementById("driverChart");
+  if(!ctx || typeof Chart === "undefined") return;
+
+  if(driverChart) driverChart.destroy();
+
+  driverChart = new Chart(ctx, {
+    type:"doughnut",
+    data:{
+      labels:drivers.map(d=>d.name),
+      datasets:[{
+        data:drivers.map(d=>d.pct),
+        backgroundColor:drivers.map(d=>d.color)
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{position:"bottom"}}
+    }
+  });
+}
+
+function updateProfile(){
+  const sel = document.getElementById("provinceSelect");
+  if(!sel) return;
+
+  const key = sel.value || "nakhon";
+  const p = provinces[key];
+  const m = currentMonthIndex();
+
+  const cards = [
+    ["Risk Score", `${p.risk[m]}/100`, levelTh(p.risk[m])],
+    ["SST anomaly", `${p.sst[m] > 0 ? "+" : ""}${p.sst[m].toFixed(1)}°C`, "เทียบค่าเฉลี่ยย้อนหลัง"],
+    ["CHL-a anomaly", `${p.chla[m] > 0 ? "+" : ""}${p.chla[m]}%`, "productivity signal"],
+    ["Fishery dependency", p.dep, "จากข้อมูลประมงรายจังหวัด"]
+  ];
+
+  document.getElementById("profileCards").innerHTML = cards.map(c=>`
+    <div class="card">
+      <div class="stat-label">${c[0]}</div>
+      <div class="stat-val">${c[1]}</div>
+      <div class="stat-sub">${c[2]}</div>
+    </div>
+  `).join("");
+
+  document.getElementById("factorText").innerHTML = `
+    <p>${p.factor}</p>
+    <br>
+    <p><b>Actionable interpretation:</b> ใช้เพื่อจัดลำดับพื้นที่เฝ้าระวังและสำรวจภาคสนาม ไม่ใช่ทำนายตำแหน่งปลารายจุด</p>
+  `;
+
+  updateDriverPanel(p,m);
+
+  const ctx = document.getElementById("provinceChart");
+  if(!ctx || typeof Chart === "undefined") return;
+
+  if(provinceChart) provinceChart.destroy();
+
+  provinceChart = new Chart(ctx, {
+    type:"line",
+    data:{
+      labels:months,
+      datasets:[
+        {label:"Risk Score",data:p.risk,tension:.35,borderWidth:2,pointRadius:3},
+        {label:"Heat Stress",data:p.heat,tension:.35,borderWidth:2,pointRadius:2},
+        {label:"Low Productivity",data:p.prod,tension:.35,borderWidth:2,pointRadius:2}
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      scales:{y:{min:0,max:100}}
+    }
+  });
+}
+
+/* ---------- Alerts ---------- */
+function updateAlerts(){
+  const m = currentMonthIndex();
+  const ranked = Object.entries(provinces)
+    .map(([key,p]) => ({key, ...p, score:p.risk[m]}))
+    .sort((a,b) => b.score - a.score);
+
+  const target = document.getElementById("alertList");
+  if(!target) return;
+
+  target.innerHTML = ranked.map(r=>{
+    const lv = level(r.score);
+    const cls = lv === "high" ? "h" : lv === "mid" ? "m" : "l";
+    const action = r.score >= 70
+      ? "แนะนำ: เฝ้าระวังรายสัปดาห์ · ประสานประมงจังหวัด · สำรวจภาคสนามเพิ่มเติม"
+      : r.score >= 40
+      ? "แนะนำ: ติดตามต่อเนื่อง · เตรียมข้อมูลสนับสนุนการวางแผน"
+      : "แนะนำ: ใช้เป็น baseline และติดตามตามปกติ";
+
+    return `<div class="alert ${cls}">
+      <div>
+        <h4>${r.name}</h4>
+        <p>${months[m]} · SST anomaly ${r.sst[m] > 0 ? "+" : ""}${r.sst[m].toFixed(1)}°C · CHL-a anomaly ${r.chla[m] > 0 ? "+" : ""}${r.chla[m]}% · dependency ${r.dep}</p>
+        <span class="action">${action}</span>
+      </div>
+      <div>
+        <div class="score-big" style="color:${colorByScore(r.score)}">${r.score}</div>
+        <span class="risk-badge ${lv}">${levelTh(r.score)}</span>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+/* ---------- Pipeline CSV Upload → Auto Map ---------- */
+let pipelineRows = [];
+let pipelineMode = "waiting for csv";
+
+const samplePipelineRows = [
+  {province:"Pattani Province", month:"2024-06", sst_mean_C:"31.21", sst_anomaly_C:"0.88", MHSI:"100", risk_level:"High"},
+  {province:"Songkhla Province", month:"2024-06", sst_mean_C:"31.24", sst_anomaly_C:"0.90", MHSI:"100", risk_level:"High"},
+  {province:"Surat Thani Province", month:"2024-06", sst_mean_C:"30.85", sst_anomaly_C:"0.91", MHSI:"100", risk_level:"High"},
+  {province:"Chumphon Province", month:"2024-06", sst_mean_C:"30.56", sst_anomaly_C:"0.86", MHSI:"99.90", risk_level:"High"},
+  {province:"Nakhon Si Thammarat Province", month:"2024-06", sst_mean_C:"31.14", sst_anomaly_C:"0.83", MHSI:"95.42", risk_level:"High"},
+
+  {province:"Songkhla Province", month:"2024-12", sst_mean_C:"28.68", sst_anomaly_C:"0.34", MHSI:"38.98", risk_level:"Low"},
+  {province:"Nakhon Si Thammarat Province", month:"2024-12", sst_mean_C:"28.46", sst_anomaly_C:"0.31", MHSI:"36.33", risk_level:"Low"},
+  {province:"Chumphon Province", month:"2024-12", sst_mean_C:"28.33", sst_anomaly_C:"0.29", MHSI:"34.08", risk_level:"Low"},
+  {province:"Surat Thani Province", month:"2024-12", sst_mean_C:"28.46", sst_anomaly_C:"0.29", MHSI:"33.94", risk_level:"Low"},
+  {province:"Pattani Province", month:"2024-12", sst_mean_C:"28.57", sst_anomaly_C:"0.22", MHSI:"25.32", risk_level:"Low"}
+];
+
+const provinceNameToKey = {
+  "Chumphon":"chumphon",
+  "Chumphon Province":"chumphon",
+  "ชุมพร":"chumphon",
+
+  "Surat Thani":"surat",
+  "Surat Thani Province":"surat",
+  "สุราษฎร์ธานี":"surat",
+
+  "Nakhon Si Thammarat":"nakhon",
+  "Nakhon Si Thammarat Province":"nakhon",
+  "นครศรีธรรมราช":"nakhon",
+
+  "Songkhla":"songkhla",
+  "Songkhla Province":"songkhla",
+  "สงขลา":"songkhla",
+
+  "Pattani":"pattani",
+  "Pattani Province":"pattani",
+  "ปัตตานี":"pattani"
+};
+
+function normalizeProvinceKey(name){
+  if(!name) return null;
+  const cleaned = String(name).trim();
+  const noProvince = cleaned.replace(/\s+Province$/i, "");
+  return provinceNameToKey[cleaned] || provinceNameToKey[noProvince] || null;
+}
+
+function parseCSV(text){
+  const lines = String(text || "").trim().split(/\r?\n/).filter(Boolean);
+  if(!lines.length) return [];
+
+  const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g,""));
+
+  return lines.slice(1).map(line => {
+    const cells = [];
+    let cur = "";
+    let inQuotes = false;
+
+    for(let i=0; i<line.length; i++){
+      const ch = line[i];
+
+      if(ch === '"' && line[i+1] === '"'){
+        cur += '"';
+        i++;
+        continue;
+      }
+
+      if(ch === '"'){
+        inQuotes = !inQuotes;
+        continue;
+      }
+
+      if(ch === "," && !inQuotes){
+        cells.push(cur);
+        cur = "";
+        continue;
+      }
+
+      cur += ch;
+    }
+
+    cells.push(cur);
+
+    const obj = {};
+    headers.forEach((h,i) => {
+      obj[h] = (cells[i] ?? "").trim();
+    });
+
+    return obj;
+  });
+}
+
+function toNum(v){
+  const n = Number(String(v ?? "").replace(/[^\d.\-]/g,""));
+  return Number.isFinite(n) ? n : 0;
+}
+
+function formatNum(v){
+  const n = toNum(v);
+  return n.toFixed(n % 1 === 0 ? 0 : 2);
+}
+
+function formatSigned(v){
+  const n = toNum(v);
+  return `${n >= 0 ? "+" : ""}${n.toFixed(2)}`;
+}
+
+function getMhsiValue(row){
+  return toNum(row.MHSI ?? row.mhsi ?? row.preliminary_heat_risk_score ?? row.heat_risk_score ?? 0);
+}
+
+function getRiskLevel(row){
+  const explicit = row.risk_level || row.Risk_Level || row.level;
+  if(explicit) return explicit;
+
+  const mhsi = getMhsiValue(row);
+  if(mhsi >= 70) return "High";
+  if(mhsi >= 40) return "Medium";
+  return "Low";
+}
+
+function pipelineLevelClass(levelText){
+  const t = String(levelText || "").toLowerCase();
+
+  if(t.includes("high") || t.includes("สูง")) return "high";
+  if(t.includes("medium") || t.includes("mid") || t.includes("ปานกลาง")) return "mid";
+  return "low";
+}
+
+function pipelineColor(value, metric){
+  const v = toNum(value);
+
+  if(metric === "sst_anomaly_C"){
+    if(v >= 0.8) return "#B5614A";
+    if(v >= 0.4) return "#A07B3A";
+    return "#2E7D6E";
+  }
+
+  if(v >= 70) return "#B5614A";
+  if(v >= 40) return "#A07B3A";
+  return "#2E7D6E";
+}
+
+function handlePipelineCsv(event){
+  const file = event.target.files && event.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = e => {
+    pipelineRows = parseCSV(e.target.result);
+    pipelineMode = "uploaded csv";
+    setupPipelineMonthSelect();
+    renderPipelineTable();
+  };
+
+  reader.readAsText(file, "utf-8");
+}
+
+function loadSamplePipelineData(){
+  pipelineRows = samplePipelineRows.map(r => ({...r}));
+  pipelineMode = "embedded demo csv";
+  setupPipelineMonthSelect();
+  renderPipelineTable();
+}
+
+function clearPipelineUploads(){
+  pipelineRows = [];
+  pipelineMode = "waiting for csv";
+
+  const input = document.getElementById("pipelineCsvInput");
+  if(input) input.value = "";
+
+  const sel = document.getElementById("pipelineMonthSelect");
+  if(sel) sel.innerHTML = "";
+
+  const tbody = document.querySelector("#pipelineResultTable tbody");
+  if(tbody) tbody.innerHTML = "";
+
+  const summary = document.getElementById("pipelineSummaryCards");
+  if(summary) summary.innerHTML = "";
+
+  if(pipelineMapLayer) pipelineMapLayer.clearLayers();
+
+  renderPipelineSummary([]);
+  updatePipelineModeBadge();
+}
+
+function setupPipelineMonthSelect(){
+  const sel = document.getElementById("pipelineMonthSelect");
+  if(!sel) return;
+
+  const monthList = [...new Set(pipelineRows.map(r => r.month).filter(Boolean))].sort();
+  sel.innerHTML = "";
+
+  monthList.forEach(m => {
+    const opt = document.createElement("option");
+    opt.value = m;
+    opt.textContent = m;
+    if(m === "2024-06") opt.selected = true;
+    sel.appendChild(opt);
+  });
+
+  if(!sel.value && monthList.length){
+    sel.value = monthList[monthList.length - 1];
+  }
+
+  updatePipelineModeBadge();
+}
+
+function renderPipelineTable(){
+  const tbody = document.querySelector("#pipelineResultTable tbody");
+  const sel = document.getElementById("pipelineMonthSelect");
+
+  if(!tbody) return;
+
+  if(!pipelineRows.length){
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align:center;color:var(--muted)">
+          Upload CSV หรือกด Load embedded demo CSV เพื่อเริ่มแสดงผล
+        </td>
+      </tr>
+    `;
+    renderPipelineSummary([]);
+    updatePipelineModeBadge();
+    renderPipelineMap();
+    return;
+  }
+
+  const selectedMonth = sel && sel.value ? sel.value : pipelineRows[0].month;
+
+  const rows = pipelineRows
+    .filter(r => r.month === selectedMonth)
+    .sort((a,b) => getMhsiValue(b) - getMhsiValue(a));
+
+  tbody.innerHTML = rows.map(r => {
+    const mhsi = getMhsiValue(r);
+    const riskLevel = getRiskLevel(r);
+    const cls = pipelineLevelClass(riskLevel);
+
+    return `
+      <tr>
+        <td><b>${r.province || "-"}</b></td>
+        <td>${r.month || "-"}</td>
+        <td><b>${formatNum(r.sst_mean_C)}°C</b></td>
+        <td>${formatSigned(r.sst_anomaly_C)}°C</td>
+        <td><b>${formatNum(mhsi)}</b></td>
+        <td><span class="risk-badge ${cls}">${riskLevel}</span></td>
+      </tr>
+    `;
+  }).join("");
+
+  renderPipelineSummary(rows);
+  updatePipelineModeBadge();
+  renderPipelineMap();
+}
+
+function renderPipelineSummary(rows){
+  const box = document.getElementById("pipelineSummaryCards");
+  if(!box) return;
+
+  if(!rows || !rows.length){
+    box.innerHTML = `
+      <div class="stat-box">
+        <div class="stat-label">Rows</div>
+        <div class="stat-val">0</div>
+        <div class="stat-sub">ยังไม่มี CSV</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Top Province</div>
+        <div class="stat-val">—</div>
+        <div class="stat-sub">รอข้อมูล</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Max Anomaly</div>
+        <div class="stat-val">—</div>
+        <div class="stat-sub">SST anomaly</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">High Risk</div>
+        <div class="stat-val">—</div>
+        <div class="stat-sub">MHSI ≥70</div>
+      </div>
+    `;
+    return;
+  }
+
+  const top = [...rows].sort((a,b) => getMhsiValue(b) - getMhsiValue(a))[0];
+  const maxA = [...rows].sort((a,b) => toNum(b.sst_anomaly_C) - toNum(a.sst_anomaly_C))[0];
+  const highCount = rows.filter(r => getMhsiValue(r) >= 70).length;
+
+  box.innerHTML = `
+    <div class="stat-box">
+      <div class="stat-label">Rows</div>
+      <div class="stat-val">${rows.length}</div>
+      <div class="stat-sub">จังหวัดในเดือนที่เลือก</div>
+    </div>
+    <div class="stat-box red">
+      <div class="stat-label">Top Province</div>
+      <div class="stat-val" style="font-size:22px">${top.province || "-"}</div>
+      <div class="stat-sub">MHSI ${formatNum(getMhsiValue(top))}</div>
+    </div>
+    <div class="stat-box amber">
+      <div class="stat-label">Max Anomaly</div>
+      <div class="stat-val">${formatSigned(maxA.sst_anomaly_C)}°C</div>
+      <div class="stat-sub">${maxA.province || "-"}</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">High Risk</div>
+      <div class="stat-val">${highCount}</div>
+      <div class="stat-sub">MHSI ≥70</div>
+    </div>
+  `;
+}
+
+function updatePipelineModeBadge(){
+  const badge = document.getElementById("pipelineDataMode");
+  if(!badge) return;
+  badge.textContent = pipelineMode;
+}
+
+function ensurePipelineMap(){
+  const mapEl = document.getElementById("pipelineDynamicMap");
+  if(!mapEl) return;
+
+  if(!pipelineMap){
+    pipelineMap = L.map("pipelineDynamicMap", {
+      zoomControl:true,
+      attributionControl:true
+    }).setView([8.55,100.10], 7);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom:18,
+      attribution:"&copy; OpenStreetMap contributors"
+    }).addTo(pipelineMap);
+
+    pipelineBufferLayer = L.polygon(coastalBufferPoly, {
+      color:"#2E7D6E",
+      weight:1.6,
+      dashArray:"6,6",
+      fillColor:"#2E7D6E",
+      fillOpacity:0.06
+    })
+    .bindPopup("<b>Coastal analysis buffer</b><br>พื้นที่วิเคราะห์ชายฝั่ง 0–50 km")
+    .addTo(pipelineMap);
+
+    pipelineMapLayer = L.layerGroup().addTo(pipelineMap);
+    pipelineMap.fitBounds([[6.15,98.65],[11.15,101.90]], {padding:[20,20]});
+  }
+
+  setTimeout(() => {
+    if(pipelineMap) pipelineMap.invalidateSize();
+  }, 80);
+}
+
+function renderPipelineMap(){
+  ensurePipelineMap();
+
+  if(!pipelineMapLayer) return;
+
+  const sel = document.getElementById("pipelineMonthSelect");
+  const metricSelect = document.getElementById("pipelineMapMetric");
+
+  const selectedMonth = sel && sel.value ? sel.value : null;
+  const metric = metricSelect && metricSelect.value ? metricSelect.value : "MHSI";
+
+  const rows = selectedMonth
+    ? pipelineRows.filter(r => r.month === selectedMonth)
+    : pipelineRows;
+
+  pipelineMapLayer.clearLayers();
+
+  rows.forEach(r => {
+    const key = normalizeProvinceKey(r.province);
+    if(!key || !provinceGeo[key]) return;
+
+    const mhsi = getMhsiValue(r);
+    const anomaly = toNum(r.sst_anomaly_C);
+    const value = metric === "sst_anomaly_C" ? anomaly : mhsi;
+    const fill = pipelineColor(value, metric);
+
+    const poly = L.polygon(provinceGeo[key], {
+      color:"#ffffff",
+      weight:1.4,
+      fillColor:fill,
+      fillOpacity:0.78
+    });
+
+    poly.bindPopup(`
+      <b>${r.province || key}</b><br>
+      Month: <b>${r.month || "-"}</b><br>
+      SST mean: <b>${formatNum(r.sst_mean_C)}°C</b><br>
+      SST anomaly: <b>${formatSigned(r.sst_anomaly_C)}°C</b><br>
+      Preliminary MHSI: <b>${formatNum(mhsi)}</b><br>
+      Risk level: <b>${getRiskLevel(r)}</b><br>
+      <hr style="border:none;border-top:1px solid #ddd">
+      <span style="color:#666">Map generated directly from uploaded CSV</span>
+    `);
+
+    poly.addTo(pipelineMapLayer);
+  });
+
+  if(pipelineMap){
+    pipelineMap.fitBounds([[6.15,98.65],[11.15,101.90]], {padding:[20,20]});
+  }
+}
+
+/* ---------- Start ---------- */
+document.addEventListener("DOMContentLoaded", () => {
+  initSelectors();
+  updateProfile();
+  updateAlerts();
+});
+</script>
+<!-- =========================================================
+MONTHLY NOTEBOOK MAP VIEWER PATCH
+Paste this block before </body>
+========================================================= -->
+<style>
+.monthly-map-viewer{
+  display:grid;
+  grid-template-columns:1fr 340px;
+  gap:1rem;
+  align-items:start;
+  margin-top:1rem;
+}
+
+.monthly-map-frame{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:7px;
+  padding:1rem;
+}
+
+.monthly-map-img{
+  width:100%;
+  max-height:780px;
+  object-fit:contain;
+  display:block;
+  background:white;
+  border:1px solid var(--border);
+  border-radius:7px;
+}
+
+.monthly-map-side{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:7px;
+  padding:1rem;
+}
+
+.monthly-map-path{
+  font-family:var(--font-num);
+  font-size:12px;
+  color:var(--teal);
+  word-break:break-all;
+  background:var(--teal-pale);
+  padding:.65rem;
+  border-radius:6px;
+  margin-top:.6rem;
+}
+
+.monthly-map-error{
+  display:none;
+  background:#fff0eb;
+  border:1px solid #e7b7a7;
+  color:#8a3d2b;
+  border-radius:6px;
+  padding:.75rem .9rem;
+  font-size:13px;
+  margin-top:.7rem;
+}
+
+@media(max-width:1100px){
+  .monthly-map-viewer{
+    grid-template-columns:1fr;
+  }
+}
+</style>
+
+<script>
+(function(){
+  const MONTHLY_MAP_SECTION_ID = "monthlyNotebookMapSection";
+
+  const MONTHS_2024 = [
+    "2024-01", "2024-02", "2024-03", "2024-04",
+    "2024-05", "2024-06", "2024-07", "2024-08",
+    "2024-09", "2024-10", "2024-11", "2024-12"
+  ];
+
+  const MAP_TYPES = {
+    sst: {
+      label: "SST anomaly map",
+      prefix: "sst_anomaly_map_"
+    },
+    risk: {
+      label: "Preliminary heat-risk map",
+      prefix: "preliminary_heat_risk_map_"
+    }
+  };
+
+  function buildMonthlyMapSection(){
+    if(document.getElementById(MONTHLY_MAP_SECTION_ID)){
+      return;
+    }
+
+    const pipelinePage = document.getElementById("page-pipeline");
+    if(!pipelinePage){
+      console.warn("Monthly map viewer: ไม่พบ #page-pipeline");
+      return;
+    }
+
+    const section = document.createElement("div");
+    section.className = "card";
+    section.id = MONTHLY_MAP_SECTION_ID;
+    section.style.marginBottom = "1rem";
+
+    section.innerHTML = `
+      <div class="card-title">Notebook-Generated Monthly Maps · รูปแผนที่รายเดือนจาก Pipeline</div>
+
+      <div class="notice">
+        ส่วนนี้แสดงรูป PNG ที่ generate จาก notebook/script โดยตรง เช่น แผนที่ SST anomaly และ preliminary heat-risk map รายเดือน
+        ถ้าเปิดจาก <code>test.html</code> ปกติ ระบบจะอ่านรูปจากโฟลเดอร์ <code>monthly_maps/</code>
+        และถ้าเปิดจาก <code>test_embedded.html</code> ระบบจะใช้รูปที่ฝังไว้ใน HTML อัตโนมัติ
+      </div>
+
+      <div class="monthly-map-viewer">
+        <div class="monthly-map-frame">
+          <img id="monthlyNotebookMapImg" class="monthly-map-img" alt="Notebook-generated monthly map">
+
+          <div id="monthlyNotebookMapError" class="monthly-map-error">
+            โหลดรูปไม่สำเร็จ ให้เช็กว่าไฟล์ HTML อยู่โฟลเดอร์เดียวกับ <code>monthly_maps/</code>
+            และชื่อไฟล์ตรง เช่น <code>monthly_maps/preliminary_heat_risk_map_2024-12.png</code>
+          </div>
+        </div>
+
+        <div class="monthly-map-side">
+          <div class="card-title">Map Selector</div>
+
+          <div class="controls" style="margin-bottom:.8rem">
+            <label>เดือน:</label>
+            <select id="monthlyNotebookMonthSelect"></select>
+          </div>
+
+          <div class="controls" style="margin-bottom:.8rem">
+            <label>รูปแบบแผนที่:</label>
+            <select id="monthlyNotebookTypeSelect">
+              <option value="sst">SST anomaly map</option>
+              <option value="risk" selected>Preliminary heat-risk map</option>
+            </select>
+          </div>
+
+          <div class="stat-box amber" style="margin-bottom:.8rem">
+            <div class="stat-label">Selected Output</div>
+            <div class="stat-val" id="monthlyNotebookSelectedLabel" style="font-size:20px">—</div>
+            <div class="stat-sub">Notebook-generated PNG</div>
+          </div>
+
+          <div class="monthly-map-path" id="monthlyNotebookMapPath">—</div>
+
+          <div class="grid-note">
+            ใช้รูปนี้เป็น Figure ใน proposal ได้ เช่น “Preliminary SST-only pipeline output generated from NOAA OISST and administrative boundary.”
+          </div>
+        </div>
+      </div>
+    `;
+
+    const interpretationCard = Array.from(pipelinePage.querySelectorAll(".card-title"))
+      .find(el => el.textContent.includes("Interpretation Note"));
+
+    if(interpretationCard){
+      const interpretationOuterCard = interpretationCard.closest(".card");
+      pipelinePage.insertBefore(section, interpretationOuterCard);
+    }else{
+      pipelinePage.appendChild(section);
+    }
+
+    const monthSelect = document.getElementById("monthlyNotebookMonthSelect");
+    MONTHS_2024.forEach(month => {
+      const opt = document.createElement("option");
+      opt.value = month;
+      opt.textContent = month;
+      if(month === "2024-12") opt.selected = true;
+      monthSelect.appendChild(opt);
+    });
+
+    monthSelect.addEventListener("change", updateMonthlyNotebookMap);
+
+    const typeSelect = document.getElementById("monthlyNotebookTypeSelect");
+    typeSelect.addEventListener("change", updateMonthlyNotebookMap);
+
+    updateMonthlyNotebookMap();
+  }
+
+  function getMonthlyMapInfo(){
+    const monthSelect = document.getElementById("monthlyNotebookMonthSelect");
+    const typeSelect = document.getElementById("monthlyNotebookTypeSelect");
+
+    const month = monthSelect && monthSelect.value ? monthSelect.value : "2024-12";
+    const type = typeSelect && typeSelect.value ? typeSelect.value : "risk";
+
+    const config = MAP_TYPES[type] || MAP_TYPES.risk;
+    const filename = `${config.prefix}${month}.png`;
+
+    return {
+      month,
+      type,
+      label: config.label,
+      filename,
+      path: `monthly_maps/${filename}`
+    };
+  }
+
+  window.updateMonthlyNotebookMap = function(){
+    const img = document.getElementById("monthlyNotebookMapImg");
+    const pathBox = document.getElementById("monthlyNotebookMapPath");
+    const labelBox = document.getElementById("monthlyNotebookSelectedLabel");
+    const errorBox = document.getElementById("monthlyNotebookMapError");
+
+    if(!img || !pathBox || !labelBox){
+      return;
+    }
+
+    const info = getMonthlyMapInfo();
+
+    labelBox.textContent = `${info.label} · ${info.month}`;
+
+    let embeddedSrc = null;
+
+    if(
+      typeof EMBEDDED_MONTHLY_MAPS !== "undefined" &&
+      EMBEDDED_MONTHLY_MAPS &&
+      EMBEDDED_MONTHLY_MAPS[info.type] &&
+      EMBEDDED_MONTHLY_MAPS[info.type][info.month]
+    ){
+      embeddedSrc = EMBEDDED_MONTHLY_MAPS[info.type][info.month];
+    }
+
+    if(embeddedSrc){
+      pathBox.textContent = `embedded in HTML · ${info.type} · ${info.month}`;
+
+      img.onerror = function(){
+        if(errorBox){
+          errorBox.style.display = "block";
+          errorBox.innerHTML = "โหลด embedded image ไม่สำเร็จ อาจเกิดจากไฟล์ HTML ใหญ่มากหรือ browser จำกัดการแสดงผล";
+        }
+      };
+
+      img.onload = function(){
+        if(errorBox){
+          errorBox.style.display = "none";
+        }
+      };
+
+      img.src = embeddedSrc;
+    }else{
+      pathBox.textContent = info.path;
+
+      img.onerror = function(){
+        if(errorBox){
+          errorBox.style.display = "block";
+          errorBox.innerHTML = `โหลดรูปไม่สำเร็จ: <code>${info.path}</code><br>ให้เช็กว่าไฟล์ HTML อยู่ข้างโฟลเดอร์ <code>monthly_maps/</code>`;
+        }
+      };
+
+      img.onload = function(){
+        if(errorBox){
+          errorBox.style.display = "none";
+        }
+      };
+
+      img.src = info.path;
+    }
+  };
+
+  document.addEventListener("DOMContentLoaded", function(){
+    buildMonthlyMapSection();
+
+    document.querySelectorAll(".nav-tab").forEach(function(tab){
+      tab.addEventListener("click", function(){
+        setTimeout(function(){
+          buildMonthlyMapSection();
+          updateMonthlyNotebookMap();
+        }, 200);
+      });
+    });
+  });
+})();
+</script>
+<!-- =========================================================
+END MONTHLY NOTEBOOK MAP VIEWER PATCH
+========================================================= -->
+</body>
+</html>
